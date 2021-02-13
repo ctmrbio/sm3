@@ -1,0 +1,18 @@
+# Cluster profile for sm3 for use on CTMR Gandalf
+__default__:
+    account: "bio"
+    partition: "ctmr"
+    extra: ""
+    time: "01:00:00"
+    n: 2
+    stderr: "slurm_logs/slurm-{rule}-{wildcards}.stderr"
+    stdout: "slurm_logs/slurm-{rule}-{wildcards}.stdout"
+    jobname: "[{rule}]: {wildcards}"
+
+
+#############################
+# Example, modify and add more as needed.
+#############################
+#example_rule:
+#    n: 8
+#    time: "01:00:00"

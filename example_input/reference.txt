@@ -1,0 +1,4 @@
+First hundred paired reads from ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR675/001/SRR6757151/SRR6757151.fastq.gz
+ENA: https://www.ebi.ac.uk/ena/browser/view/SRX3729722
+Illumina MiSeq paired end sequencing; RNA-Seq of E. coli
+
