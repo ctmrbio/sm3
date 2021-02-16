@@ -1,70 +1,99 @@
 # vim: syntax=python expandtab
 # Simple Snakemake example
 
+# SETTINGS
+INPUT_DIR = "input"
+MPA3_DBPATH = "/db/metaphlan3"
+
 
 # Adjust the glob pattern to fit your input file names
-SAMPLES= glob_wildcards("input/{sample}_1.fq.gz").sample
+SAMPLES = glob_wildcards(f"{INPUT_DIR}/{{sample}}_1.fq.gz").sample
 print("Found the following samples:")
 print(SAMPLES)
 
 
 rule all:
     input:
-        expand("output/example_rule/{sample}.gchist.txt.gz", sample=SAMPLES),
+        "output/metaphlan3/merged_abundance_table.txt"
 
 
-rule example_rule:
+rule download_mpa3_db:
     """
-    Example rule, please modify!
-    This uses BBMap's reformat.sh to extract 5 reads from the input files.
+    Download MetaPhlAn3 database if it doesn't already exist.
     """
-    input:
-        read1="input/{sample}_1.fq.gz",
-        read2="input/{sample}_2.fq.gz",
     output:
-        file1="output/example_rule/{sample}_1.head.fq.gz",
-        file2="output/example_rule/{sample}_2.head.fq.gz",
-        gchist="output/example_rule/{sample}.gchist.txt",
+        bt2_db=f"{MPA3_DBPATH}/mpa_v30_CHOCOPhlAn_201901.1.bt2",
     log:
-        stderr="output/logs/example_rule/{sample}.stderr",
-        stdout="output/logs/example_rule/{sample}.stdout",
+        stderr="output/logs/metaphlan3/download_db.stderr",
+        stdout="output/logs/metaphlan3/download_db.stdout",
     threads:
-        2
+        8
     conda:
         "envs/conda.yaml"
     shell:
         """
-        reformat.sh \
-            in1={input.read1} \
-            in2={input.read2} \
-            out1={output.file1} \
-            out2={output.file2} \
-            gchist={output.gchist} \
-            threads={threads} \
-            reads=5 \
+        metaphlan \
+            --install \
+            --index mpa_v30_CHOCOPhlAn_201901 \
+            --bowtie2db db/mpa3 \
+            --nproc {threads} \
             2> {log.stderr} \
             > {log.stdout}
         """
 
 
-rule compress_gchist:
+rule metaphlan3:
     """
-    Example rule, please modify!
-    This uses gzip to compress its input file.
+    Create metaphlan3 profile for each sample
     """
     input:
-        gchist=rules.example_rule.output.gchist,
+        db=rules.download_mpa3_db.output.bt2_db,
+        read1=f"{INPUT_DIR}/{{sample}}_1.fq.gz",
+        read2=f"{INPUT_DIR}/{{sample}}_2.fq.gz",
     output:
-        gz="output/example_rule/{sample}.gchist.txt.gz",
+        bt2out="output/metaphlan3/{sample}.bowtie2.bz2",
+        profile="output/metaphlan3/{sample}.mpa_profile.txt",
     log:
-        stderr="output/logs/compress_sam/{sample}.stderr",
+        stderr="output/logs/metaphlan3/{sample}.stderr",
+        stdout="output/logs/metaphlan3/{sample}.stdout",
     threads:
-        2
+        8
+    conda:
+        "envs/conda.yaml"
+    params: 
+        dbpath=MPA3_DBPATH,
+    shell:
+        """
+        metaphlan \
+            {input.read1},{input.read2} \
+	        --bowtie2out {output.bt2out} \
+            -o {output.profile} \
+            --bowtie2db {params.dbpath} \
+	        --input_type fastq \
+            --nproc {threads} \
+            2> {log.stderr} \
+            > {log.stdout}
+        """
+
+
+rule merge_metaphlan_tables:
+    """
+    Merge all sample profiles into one large table.
+    """
+    input:
+        profiles=expand("output/metaphlan3/{sample}.mpa_profile.txt", sample=SAMPLES),
+    output:
+        merged="output/metaphlan3/merged_abundance_table.txt",
+    log:
+        stderr="output/logs/metaphlan3/merge_tables.stderr",
+    threads:
+        1
     conda:
         "envs/conda.yaml"
     shell:
         """
-        gzip \
-            {input.gchist} \
-            2> {log.stderr}
+        merge_metaphlan_tables.py \
+            {input.profiles} \
+            > {output.merged} \
+            2> {log.stderr} \
         """
