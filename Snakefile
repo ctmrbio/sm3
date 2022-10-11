@@ -3,7 +3,7 @@
 
 
 # Adjust the glob pattern to fit your input file names
-SAMPLES= glob_wildcards("input/{sample}_1.fq.gz").sample
+SAMPLES = glob_wildcards("input/{sample}_1.fq.gz").sample
 print("Found the following samples:")
 print(SAMPLES)
 
