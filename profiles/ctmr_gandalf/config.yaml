@@ -1,5 +1,5 @@
 jobscript: "profiles/ctmr_gandalf/slurm-jobscript.sh"
-cluster: "profiles/ctmr_gandalf/slurm-submit.py --time {cluster.time} --partition {cluster.partition} --error {cluster.stderr} --output {cluster.stdout} --job-name '{cluster.jobname}' {cluster.extra}"
+cluster: "profiles/ctmr_gandalf/slurm-submit.py --nodes 1 --time {cluster.time} --partition {cluster.partition} --error {cluster.stderr} --output {cluster.stdout} --job-name '{cluster.jobname}' {cluster.extra}"
 cluster-status: "profiles/ctmr_gandalf/slurm-status.py"
 cluster-config: "profiles/ctmr_gandalf/ctmr_gandalf.yaml"
 max-jobs-per-second: 10
