@@ -1,7 +1,7 @@
 name: sm3
 channels:
-    - bioconda
     - conda-forge
-    - defaults
+    - bioconda
+    - nodefaults
 dependencies:
     - bbmap =38.68
