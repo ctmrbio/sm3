@@ -48,10 +48,10 @@ default-resources:
   - time="01:00:00"
   - mem_mb=10240
 set-threads:
-  - fastp=20
-  - remove_host=20
+  - convert_to_fasta=20
+  - compress_gchist=4
 set-resources:
-  - fastp:mem_mb=20240
-  - fastp:time="02:00:00"
-  - remove_host:mem_mb=10240
-  - remove_host:time="02:00:00"
+  - convert_to_fasta:mem_mb=1024
+  - convert_to_fasta:time="02:00:00"
+  - compress_gchist:mem_mb=256
+  - compress_gchist:time="00:30:00"
