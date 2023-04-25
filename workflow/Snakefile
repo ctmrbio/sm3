@@ -1,6 +1,7 @@
 # vim: syntax=python expandtab
 # Simple Snakemake example
 
+configfile: "config/config.yaml"
 
 # Adjust the glob pattern to fit your input file names
 SAMPLES = glob_wildcards("input/{sample}_1.fq.gz").sample
@@ -10,28 +11,31 @@ print(SAMPLES)
 
 rule all:
     input:
-        expand("output/example_rule/{sample}.gchist.txt.gz", sample=SAMPLES),
+        expand("output/convert_to_fasta/{sample}.gchist.txt.gz", sample=SAMPLES),
 
 
-rule example_rule:
+rule convert_to_fasta:
     """
     Example rule, please modify!
-    This uses BBMap's reformat.sh to extract 5 reads from the input files.
+    This uses BBMap's reformat.sh to extract reads from the input files and
+    save them as FASTA.
     """
     input:
         read1="input/{sample}_1.fq.gz",
         read2="input/{sample}_2.fq.gz",
     output:
-        file1="output/example_rule/{sample}_1.head.fq.gz",
-        file2="output/example_rule/{sample}_2.head.fq.gz",
-        gchist="output/example_rule/{sample}.gchist.txt",
+        file1="output/convert_to_fasta/{sample}_1.head.fa.gz",
+        file2="output/convert_to_fasta/{sample}_2.head.fa.gz",
+        gchist="output/convert_to_fasta/{sample}.gchist.txt",
     log:
-        stderr="output/logs/example_rule/{sample}.stderr",
-        stdout="output/logs/example_rule/{sample}.stdout",
+        stderr="output/logs/convert_to_fasta/{sample}.stderr",
+        stdout="output/logs/convert_to_fasta/{sample}.stdout",
     threads:
         2
     conda:
         "envs/conda.yaml"
+    params:
+       reads=config["reads_to_extract"],
     shell:
         """
         reformat.sh \
@@ -41,7 +45,7 @@ rule example_rule:
             out2={output.file2} \
             gchist={output.gchist} \
             threads={threads} \
-            reads=5 \
+            reads={params.reads} \
             2> {log.stderr} \
             > {log.stdout}
         """
@@ -53,11 +57,11 @@ rule compress_gchist:
     This uses gzip to compress its input file.
     """
     input:
-        gchist=rules.example_rule.output.gchist,
+        gchist=rules.convert_to_fasta.output.gchist,
     output:
-        gz="output/example_rule/{sample}.gchist.txt.gz",
+        gz="output/convert_to_fasta/{sample}.gchist.txt.gz",
     log:
-        stderr="output/logs/compress_sam/{sample}.stderr",
+        stderr="output/logs/compress_gchist/{sample}.stderr",
     threads:
         2
     conda:
