@@ -12,7 +12,7 @@ git clone git@github.com:ctmrbio/sm3 my_analysis
 ```
 2. Modify the Snakefile according to your needs. Add rules to produce output
    files and add desired final output files to the `all` rule.
-4. Define the environment required to run the rules in `envs/conda.yaml`.
+4. Define the environment required to run the rules in `workflows/envs/conda.yaml`.
 3. Create an `input` directory and put your input files there (a symlink usually works fine).
 
 
