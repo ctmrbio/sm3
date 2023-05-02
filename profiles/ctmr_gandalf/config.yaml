@@ -1,8 +1,57 @@
-jobscript: "profiles/ctmr_gandalf/slurm-jobscript.sh"
-cluster: "profiles/ctmr_gandalf/slurm-submit.py --nodes 1 --time {cluster.time} --partition {cluster.partition} --error {cluster.stderr} --output {cluster.stdout} --job-name '{cluster.jobname}' {cluster.extra}"
-cluster-status: "profiles/ctmr_gandalf/slurm-status.py"
-cluster-config: "profiles/ctmr_gandalf/ctmr_gandalf.yaml"
+# Snakemake profile for SM3 for use on CTMR Gandalf
+# Fredrik Boulund 2023
+
+#######################################
+# General Snakemake settings
+#######################################
+configfile: config/config.yaml
+keep-going: False
+rerun-incomplete: True
+printshellcmds: True
+scheduler: greedy
+use-conda: True
+#use-singularity: True
+#singularity-prefix: /ceph/db/sing
+#singularity-args: "-B /ceph"
+
+#######################################
+# Cluster settings
+#######################################
+cluster:
+  mkdir -p slurm_logs/{rule} &&
+  sbatch
+    --partition={resources.partition}
+    --nodes=1
+    --cpus-per-task={threads}
+    --mem={resources.mem_mb}
+    --time={resources.time}
+    --job-name={rule}-{wildcards}
+    --output=slurm_logs/{rule}/{rule}-{wildcards}-%j.out
+    --parsable
+cluster-cancel: scancel
+cluster-cancel-nargs: 50
+cluster-status: status-sacct.sh
+restart-times: 0
 max-jobs-per-second: 10
-max-status-checks-per-second: 10
-local-cores: 1
-jobs: 999
+max-status-checks-per-second: 1
+latency-wait: 60
+jobs: 500
+
+#######################################
+# Resource settings
+#######################################
+local-cores: 2
+default-resources:
+  - cpus_per_task=2
+  - account=bio
+  - partition=ctmr
+  - time="01:00:00"
+  - mem_mb=10240
+set-threads:
+  - convert_to_fasta=20
+  - compress_gchist=4
+set-resources:
+  - convert_to_fasta:mem_mb=1024
+  - convert_to_fasta:time="02:00:00"
+  - compress_gchist:mem_mb=256
+  - compress_gchist:time="00:30:00"
